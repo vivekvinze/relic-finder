@@ -38,7 +38,7 @@ window.HUNT_CONFIG = {
   INTRO: {
     title: 'Signal detected',
     message:
-      'Three relics are hidden nearby.\n' +
+      'Three dragon balls are hidden nearby.\n' +
       'Follow the blip. The closer you get, the faster it pings.',
   },
 
@@ -60,29 +60,29 @@ window.HUNT_CONFIG = {
     {
       name: 'Relic 1',
       lat: 40.77394, lng: -73.97108, // ⬅️ CHANGE location 1
-      image: 'images/relic-1.png',   // ⬅️ CHANGE picture 1
-      hint: '<text 1>',              // ⬅️ CHANGE hint 1
-      clue: '',
+      image: 'images/db1-relc.png',   // ⬅️ CHANGE picture 1
+      hint: 'This is a slower version of instant transmission. ',              // ⬅️ CHANGE hint 1
+      clue: 'This is the standard LLD interview question',
     },
     {
       name: 'Relic 2',
       lat: 40.77566, lng: -73.97186, // ⬅️ CHANGE location 2
-      image: 'images/relic-2.png',   // ⬅️ CHANGE picture 2
-      hint: '<text 2>',              // ⬅️ CHANGE hint 2
+      image: 'images/db2-relic.png',   // ⬅️ CHANGE picture 2
+      hint: 'Vegeta would never skip a day here. Head to where Saiyans push past their limits and train until they break the 100x gravity.',              // ⬅️ CHANGE hint 2
       clue: '',
     },
     {
       name: 'Relic 3',
       lat: 40.77938, lng: -73.96913, // ⬅️ CHANGE location 3
-      image: 'images/relic-3.png',   // ⬅️ CHANGE picture 3
-      hint: '<text 3>',              // ⬅️ CHANGE hint 3
+      image: 'images/db4-relic.png',   // ⬅️ CHANGE picture 3
+      hint: 'You’ve gathered all three Dragon Balls. Now find a place with nothing above you but open sky, and call out Shenron!',              // ⬅️ CHANGE hint 3
       clue: '',
     },
   ],
 
   // ⬇️ CHANGE: shown after the last relic is found.
   FINALE: {
-    title: 'All relics secured',
+    title: 'All dragon balls secured',
     message: 'You did it.',
   },
 
