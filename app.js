@@ -505,7 +505,7 @@
     const standalone = window.navigator.standalone || matchMedia('(display-mode: standalone)').matches;
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
     const lines = [
-      ['RELIC FINDER MK-II', ''],
+      ['DRAGON BALL RADAR', ''],
       ['SENSOR ARRAY ......... OK', 'dim'],
       ['PHOSPHOR ............. OK', 'dim'],
       [`RELICS DETECTED ...... ${TOTAL}`, 'dim'],
