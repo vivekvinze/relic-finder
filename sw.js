@@ -4,7 +4,7 @@
  * ⬇️ Bump this every time you deploy changes (e.g. new locations in
  * config.js), otherwise installed copies keep serving the old files.
  */
-const CACHE_VERSION = 'relic-finder-v2';
+const CACHE_VERSION = 'relic-finder-v3';
 
 const ASSETS = [
   './',
