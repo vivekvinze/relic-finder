@@ -505,10 +505,10 @@
     const standalone = window.navigator.standalone || matchMedia('(display-mode: standalone)').matches;
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
     const lines = [
-      ['RELIC FINDER MK-II', ''],
+      ['Dragon Ball Radar', ''],
       ['SENSOR ARRAY ......... OK', 'dim'],
       ['PHOSPHOR ............. OK', 'dim'],
-      [`RELICS DETECTED ...... ${TOTAL}`, 'dim'],
+      [`Dragon Balls detected ...... ${TOTAL}`, 'dim'],
     ];
     if (ios && !standalone && !DEV) lines.push(['', ''], ['TIP: SHARE › ADD TO HOME SCREEN', 'dim']);
     if (DEV) lines.push(['', ''], ['DEV MODE', '']);
