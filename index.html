@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Relic Finder</title>
+  <meta name="theme-color" content="#1b1540">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Relic Finder">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="device" aria-label="Relic Finder">
+    <header class="topbar">
+      <div class="brand">
+        <span class="led" id="led" aria-hidden="true"></span>
+        <span class="wordmark">RELIC FINDER</span>
+        <span class="badge" id="badge">MK-II</span>
+      </div>
+      <div class="pips" id="pips" aria-label="Relics found"></div>
+    </header>
+
+    <section class="bezel">
+      <div class="screen" id="screen">
+        <canvas id="radar" aria-label="Radar display"></canvas>
+        <div class="scanlines" aria-hidden="true"></div>
+        <div class="glare" aria-hidden="true"></div>
+        <button class="boot" id="boot" type="button" aria-label="Power on">
+          <div class="boot-lines" id="bootLines"></div>
+        </button>
+      </div>
+    </section>
+
+    <section class="lcd" aria-live="polite">
+      <div class="cell"><span class="k">DIST</span><span class="v" id="vDist">—</span></div>
+      <div class="cell"><span class="k">HDG</span><span class="v" id="vHdg">—</span></div>
+      <div class="cell"><span class="k">ACC</span><span class="v" id="vAcc">—</span></div>
+      <div class="cell"><span class="k">RELICS</span><span class="v" id="vRelics">0/0</span></div>
+    </section>
+
+    <section class="clue">
+      <span class="clue-k">▸ TRANSMISSION</span>
+      <p class="clue-v" id="clue">Standing by.</p>
+    </section>
+
+    <footer class="controls">
+      <div class="btn-wrap">
+        <button class="btn" id="btnRange" type="button"></button>
+        <span class="btn-label">RANGE <b id="lRange">AUTO</b></span>
+      </div>
+      <div class="btn-wrap">
+        <button class="btn btn-cream" id="btnSound" type="button"></button>
+        <span class="btn-label">SOUND <b id="lSound">ON</b></span>
+      </div>
+      <div class="btn-wrap">
+        <button class="btn" id="btnLog" type="button"></button>
+        <span class="btn-label">LOG</span>
+      </div>
+      <div class="grille" aria-hidden="true"></div>
+    </footer>
+  </main>
+
+  <div class="modal" id="modal" hidden>
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+      <div class="card-kicker" id="mKicker"></div>
+      <h2 class="card-title" id="mTitle"></h2>
+      <img class="card-img" id="mImg" alt="" hidden>
+      <div class="card-body" id="mBody"></div>
+      <button class="card-btn" id="mBtn" type="button">OK</button>
+    </div>
+  </div>
+
+  <!-- Dev panel: only shown with ?dev=1 or after 5 taps on the MK-II badge -->
+  <div class="dev" id="dev" hidden>
+    <div class="dev-row">
+      <b>DEV</b>
+      <span id="devStatus">GPS —</span>
+      <button type="button" data-dev="sim" id="devSim">SIM off</button>
+      <button type="button" data-dev="triggers" id="devTrig">Triggers off</button>
+      <button type="button" data-dev="exit">Exit</button>
+    </div>
+    <div class="dev-row" id="devSet"></div>
+    <div class="dev-row">
+      <button type="button" data-dev="copy">Copy config</button>
+      <button type="button" data-dev="clear">Clear spots</button>
+      <button type="button" data-dev="reset">Reset progress</button>
+    </div>
+    <div class="dev-row" id="devSimRow" hidden>
+      <span>tap radar to move</span>
+      <button type="button" data-dev="step">Step</button>
+      <button type="button" data-dev="arrive">Arrive</button>
+      <button type="button" data-dev="left">⟲</button>
+      <button type="button" data-dev="right">⟳</button>
+    </div>
+    <div class="dev-msg" id="devMsg"></div>
+  </div>
+
+  <!-- config first: app.js reads window.HUNT_CONFIG -->
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
