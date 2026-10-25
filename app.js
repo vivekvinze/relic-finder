@@ -311,4 +311,423 @@
     }
     for (let b = 0; b < 360; b += 5) {
       const big = b % 90 === 0, mid = b % 30 === 0;
-      const len = big ? 13 : mid
+      const len = big ? 13 : mid ? 8 : 4;
+      ctx.strokeStyle = amber(big ? 0.85 : mid ? 0.55 : 0.25);
+      ctx.lineWidth = big ? 2 : 1;
+      const [x1, y1] = polar(cx, cy, R - len, b - rot);
+      const [x2, y2] = polar(cx, cy, R, b - rot);
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    }
+    ctx.lineWidth = 1;
+    const fs = Math.max(10, R * 0.068);
+    ctx.font = `700 ${fs}px ${MONO}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (const [l, b] of [['N', 0], ['E', 90], ['S', 180], ['W', 270]]) {
+      const [x, y] = polar(cx, cy, R - 13 - fs * 0.9, b - rot);
+      ctx.fillStyle = l === 'N' ? '#ff7a63' : amber(0.75);
+      ctx.fillText(l, x, y);
+    }
+    ctx.font = `600 ${Math.max(9, R * 0.05)}px ${MONO}`;
+    ctx.fillStyle = amber(0.45);
+    for (const i of [2, 4]) {
+      const [x, y] = polar(cx, cy, (R * i) / 4 - (i === 4 ? 26 : 8), 135);
+      ctx.fillText(fmtShort((range * i) / 4), x, y);
+    }
+
+    const sw = ((now % SWEEP_MS) / SWEEP_MS) * 360;
+    const SLICES = 36, SPAN = 1.6;
+    for (let k = 0; k < SLICES; k++) {
+      const a1 = rad(sw - k * SPAN - 90), a0 = rad(sw - (k + 1) * SPAN - 90);
+      ctx.fillStyle = amber(0.2 * (1 - k / SLICES) ** 1.6);
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, a0, a1); ctx.closePath(); ctx.fill();
+    }
+    {
+      const [x, y] = polar(cx, cy, R, sw);
+      ctx.strokeStyle = amber(0.9); ctx.lineWidth = 1.5;
+      ctx.shadowColor = '#ffb23e'; ctx.shadowBlur = 8;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y); ctx.stroke();
+      ctx.shadowBlur = 0; ctx.lineWidth = 1;
+    }
+
+    if (S.pos) {
+      const accR = Math.min(R, (S.pos.acc / range) * R);
+      if (accR > 4) {
+        ctx.setLineDash([3, 4]); ctx.strokeStyle = amber(0.28);
+        ctx.beginPath(); ctx.arc(cx, cy, accR, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      }
+      for (const t of active()) {
+        const d = dist(S.pos, t), th = bearing(S.pos, t) - rot;
+        const since = (((sw - th) % 360) + 360) % 360;
+        const glow = 0.35 + 0.65 * Math.exp(-since / 65);
+        if (d <= range) {
+          const [x, y] = polar(cx, cy, (d / range) * R, th);
+          const zr = ((t.radiusM ?? C.TRIGGER_RADIUS_M ?? 25) / range) * R;
+          if (zr > 6) {
+            ctx.strokeStyle = 'rgba(255,122,99,0.35)'; ctx.setLineDash([2, 3]);
+            ctx.beginPath(); ctx.arc(x, y, zr, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+          }
+          drawBlip(x, y, glow, now);
+        } else {
+          const [x, y] = polar(cx, cy, R - 22, th);
+          const a = 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(now / 160));
+          ctx.save(); ctx.translate(x, y); ctx.rotate(rad(th));
+          ctx.fillStyle = `rgba(255,122,99,${a})`; ctx.shadowColor = '#ff6b57'; ctx.shadowBlur = 10;
+          ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(8, 5); ctx.lineTo(0, 1); ctx.lineTo(-8, 5); ctx.closePath(); ctx.fill();
+          ctx.restore();
+        }
+      }
+    }
+
+    ctx.save(); ctx.translate(cx, cy);
+    ctx.fillStyle = '#ffe2ad'; ctx.shadowColor = '#ffb23e'; ctx.shadowBlur = 10;
+    if (S.heading != null) {
+      ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(6.5, 7); ctx.lineTo(0, 3.5); ctx.lineTo(-6.5, 7); ctx.closePath(); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.arc(0, 0, 4.5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+
+    let status = null;
+    if (S.started && done()) status = 'ALL RELICS SECURED';
+    else if (S.started && !S.pos) status = 'ACQUIRING SIGNAL';
+    if (status && Math.floor(now / 600) % 2 === 0) {
+      ctx.font = `800 ${Math.max(11, R * 0.065)}px ${MONO}`;
+      ctx.fillStyle = '#ffd28a'; ctx.shadowColor = '#ffb23e'; ctx.shadowBlur = 10;
+      ctx.fillText(status, cx, cy + R * 0.42);
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  function drawBlip(x, y, glow, now) {
+    const p = (now % 1400) / 1400;
+    ctx.strokeStyle = `rgba(255,122,99,${0.6 * (1 - p)})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(x, y, 6 + p * 18, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = 1;
+    ctx.save(); ctx.translate(x, y);
+    ctx.shadowColor = '#ff6b57'; ctx.shadowBlur = 14 * glow;
+    ctx.fillStyle = `rgba(255,122,99,${glow})`;
+    ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(7, 0); ctx.lineTo(0, 8); ctx.lineTo(-7, 0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = `rgba(255,240,220,${glow})`;
+    ctx.beginPath(); ctx.moveTo(0, -3.5); ctx.lineTo(3, 0); ctx.lineTo(0, 3.5); ctx.lineTo(-3, 0); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  /* ---------------- UI ---------------- */
+  const el = {
+    dist: $('#vDist'), hdg: $('#vHdg'), acc: $('#vAcc'), relics: $('#vRelics'),
+    clue: $('#clue'), lRange: $('#lRange'), lSound: $('#lSound'), led: $('#led'), pips: $('#pips'),
+  };
+  for (let i = 0; i < TOTAL; i++) el.pips.append(Object.assign(document.createElement('span'), { className: 'pip' }));
+
+  let lastUI = 0;
+  function updateUI(now) {
+    if (now - lastUI < 200) return;
+    lastUI = now;
+    const n = nearest();
+    el.dist.textContent = done() ? 'DONE' : n ? fmtDist(n.d) : '—';
+    el.hdg.textContent = S.heading == null ? 'N-UP' : `${Math.round(S.heading)}° ${cardinal(S.heading)}`;
+    el.acc.textContent = S.pos ? '±' + fmtShort(S.pos.acc) : '—';
+    el.relics.textContent = `${S.found.length}/${TOTAL}`;
+    el.lRange.textContent = S.rangeIdx < 0 ? 'AUTO' : fmtShort(RANGES[S.rangeIdx]);
+    el.lSound.textContent = S.sound ? 'ON' : 'OFF';
+    [...el.pips.children].forEach((p, i) => p.classList.toggle('on', i < S.found.length));
+
+    let clue;
+    if (!S.started) clue = 'Standing by. Tap the screen to power on.';
+    else if (done()) clue = 'Hunt complete.';
+    else if (S.gpsMsg && !S.sim) clue = S.gpsMsg;
+    else if (C.SEQUENTIAL === false) clue = C.DEFAULT_CLUE || 'Follow the signal.';
+    else clue = (active()[0] && active()[0].clue) || C.DEFAULT_CLUE || 'Follow the signal.';
+    if (el.clue.textContent !== clue) el.clue.textContent = clue;
+
+    if (DEV) updateDev();
+  }
+
+  // Promise-based modal. body: string, array of {title, text, image}, or a Node.
+  function showModal({ kicker = '', title = '', body = '', image = null, button = 'OK' }) {
+    S.modalOpen = true;
+    $('#mKicker').textContent = kicker;
+    $('#mTitle').textContent = title;
+    const img = $('#mImg');
+    if (image) { img.src = image; img.hidden = false; img.onerror = () => { img.hidden = true; }; }
+    else { img.hidden = true; img.removeAttribute('src'); }
+    const b = $('#mBody');
+    b.replaceChildren();
+    if (body instanceof Node) b.append(body);
+    else if (Array.isArray(body)) {
+      for (const e of body) {
+        const d = document.createElement('div'); d.className = 'entry';
+        const h = document.createElement('b'); h.textContent = e.title;
+        d.append(h);
+        if (e.image) {
+          const im = document.createElement('img'); im.src = e.image; im.alt = '';
+          im.onerror = () => im.remove();
+          d.append(im);
+        }
+        const p = document.createElement('div'); p.textContent = e.text;
+        d.append(p); b.append(d);
+      }
+    } else b.textContent = body;
+    $('#mBtn').textContent = button;
+    $('#modal').hidden = false;
+    $('.card').scrollTop = 0;
+    return new Promise((resolve) => {
+      $('#mBtn').onclick = () => {
+        $('#modal').hidden = true;
+        S.modalOpen = false;
+        resolve();
+      };
+    });
+  }
+
+  function powerOn() {
+    // Order matters on iOS: audio + compass permission must start inside the tap.
+    initAudio();
+    requestCompass();
+    startGPS();
+    keepAwake();
+    S.started = true;
+    el.led.classList.add('on');
+    $('#boot').classList.add('off');
+    powerUp();
+    setTimeout(async () => {
+      if (done()) { showFinale(); return; }
+      if (!S.introSeen && C.INTRO && !DEV) {
+        S.introSeen = true; persist();
+        await showModal({ kicker: 'INCOMING', title: C.INTRO.title, body: C.INTRO.message, button: 'BEGIN' });
+      }
+      checkArrival();
+    }, 650);
+  }
+
+  function bootScreen() {
+    const standalone = window.navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const lines = [
+      ['RELIC FINDER MK-II', ''],
+      ['SENSOR ARRAY ......... OK', 'dim'],
+      ['PHOSPHOR ............. OK', 'dim'],
+      [`RELICS DETECTED ...... ${TOTAL}`, 'dim'],
+    ];
+    if (ios && !standalone && !DEV) lines.push(['', ''], ['TIP: SHARE › ADD TO HOME SCREEN', 'dim']);
+    if (DEV) lines.push(['', ''], ['DEV MODE', '']);
+    const box = $('#bootLines');
+    lines.forEach(([txt, cls], i) => {
+      const d = document.createElement('div');
+      d.textContent = txt || '\u00a0';
+      if (cls) d.className = cls;
+      d.style.animationDelay = `${0.25 + i * 0.28}s`;
+      box.append(d);
+    });
+    const cta = document.createElement('div');
+    cta.className = 'cta';
+    cta.textContent = '[ TAP TO POWER ON ]';
+    const delay = `${0.25 + lines.length * 0.28}s`;
+    cta.style.animationDelay = `${delay}, ${delay}`;
+    box.append(cta);
+    $('#boot').addEventListener('click', powerOn, { once: true });
+  }
+
+  // Warm the cache so pictures still show with no signal.
+  C.TARGETS.forEach((t) => { if (t.image) new Image().src = t.image; });
+
+  $('#btnRange').addEventListener('click', () => {
+    S.rangeIdx = S.rangeIdx + 1 >= RANGES.length ? -1 : S.rangeIdx + 1;
+    tone(880, 0.05, 0, 'square', 0.05);
+  });
+  $('#btnSound').addEventListener('click', () => {
+    S.sound = !S.sound; persist();
+    tone(660, 0.06, 0, 'square', 0.05);
+  });
+  $('#btnLog').addEventListener('click', () => {
+    if (S.modalOpen) return;
+    const found = C.TARGETS.filter((t) => S.found.includes(t.id));
+    showModal({
+      kicker: `FIELD LOG · ${found.length}/${TOTAL}`,
+      title: found.length ? 'Relics secured' : 'Nothing yet',
+      body: found.length
+        ? found.map((t) => ({ title: t.name.toUpperCase(), image: t.image, text: t.hint || '' }))
+        : 'Follow the blip to find your first relic.',
+      button: 'CLOSE',
+    });
+  });
+
+  // NEXT button: skip straight to the next clue. Asks first so a stray tap
+  // can't skip a relic.
+  $('#btnNext').addEventListener('click', () => {
+    if (!S.started || S.modalOpen || done()) return;
+    const t = active()[0];
+    if (!t) return;
+    if (!confirm('Skip to the next clue?')) return;
+    secure(t);
+  });
+
+  // Hidden way into dev mode from the installed app: tap the badge 5×.
+  {
+    let taps = 0, timer = 0;
+    $('#badge').addEventListener('click', () => {
+      taps++; clearTimeout(timer); timer = setTimeout(() => { taps = 0; }, 1500);
+      if (taps >= 5) { put(DEV_KEY, true); location.reload(); }
+    });
+  }
+
+  /* ---------------- dev mode ----------------
+   * Real-GPS mode: stand on a spot → "Set N" averages ~6 s of fixes and saves
+   * it on this device. "Copy config" gives you lines to paste into config.js.
+   * SIM mode: fake GPS for desk testing (tap radar / Step / Arrive).
+   */
+  let devMsgTimer = 0;
+  function devMsg(t, ms = 4000) {
+    $('#devMsg').textContent = t;
+    clearTimeout(devMsgTimer);
+    if (ms) devMsgTimer = setTimeout(() => { $('#devMsg').textContent = ''; }, ms);
+  }
+
+  function updateDev() {
+    const r = S.realPos;
+    const age = r ? Math.round((Date.now() - r.t) / 1000) : null;
+    $('#devStatus').textContent = S.sim ? 'SIM GPS'
+      : r ? `GPS ±${Math.round(r.acc)}m · ${age}s ago` : (S.started ? 'GPS waiting…' : 'GPS — power on first');
+    $('#devSim').textContent = S.sim ? 'SIM on' : 'SIM off';
+    $('#devSim').classList.toggle('hot', S.sim);
+    $('#devTrig').textContent = S.triggers ? 'Triggers on' : 'Triggers off';
+    $('#devTrig').classList.toggle('hot', S.triggers);
+    $('#devSimRow').hidden = !S.sim;
+    C.TARGETS.forEach((t, i) => {
+      const b = $(`#devSet [data-idx="${i}"]`);
+      if (!b) return;
+      b.disabled = S.capturing;
+      b.classList.toggle('hot', !!spots[t.id]);
+    });
+  }
+
+  function averageFixes(fixes) {
+    // weight by 1/acc² so sharp fixes dominate
+    let w = 0, lat = 0, lng = 0;
+    for (const f of fixes) { const k = 1 / Math.max(f.acc, 1) ** 2; w += k; lat += f.lat * k; lng += f.lng * k; }
+    const best = Math.min(...fixes.map((f) => f.acc));
+    return { lat: lat / w, lng: lng / w, acc: best };
+  }
+
+  async function setSpot(i) {
+    const t = C.TARGETS[i];
+    if (S.sim) {
+      if (!S.pos) return devMsg('No simulated position yet.');
+      saveSpot(t, { lat: S.pos.lat, lng: S.pos.lng, acc: S.pos.acc });
+      return;
+    }
+    if (!S.started) return devMsg('Tap the screen to power on first.');
+    S.capturing = true;
+    const start = Date.now();
+    for (let s = 6; s > 0; s--) { devMsg(`Hold still… sampling GPS for ${t.name} (${s})`, 0); await new Promise((r) => setTimeout(r, 1000)); }
+    S.capturing = false;
+    const fixes = S.fixes.filter((f) => f.t >= start - 1500);
+    if (!fixes.length) return devMsg('No GPS fix yet. Wait for a signal and try again.');
+    const bestAcc = Math.min(...fixes.map((f) => f.acc));
+    const good = fixes.filter((f) => f.acc <= bestAcc * 1.5);
+    const spot = averageFixes(good);
+    saveSpot(t, spot);
+    if (spot.acc > 20) devMsg(`${t.name} set, but accuracy is ±${Math.round(spot.acc)} m. Try again in the open sky.`, 7000);
+  }
+
+  function saveSpot(t, spot) {
+    spots[t.id] = { lat: +spot.lat.toFixed(6), lng: +spot.lng.toFixed(6), acc: Math.round(spot.acc), at: Date.now() };
+    put(SPOTS_KEY, spots);
+    t.lat = spots[t.id].lat; t.lng = spots[t.id].lng;
+    S.inside = {};
+    tone(990, 0.12, 0, 'triangle', 0.15);
+    devMsg(`${t.name} set to ${t.lat}, ${t.lng} (±${spots[t.id].acc} m). Copy config when done.`, 6000);
+  }
+
+  function configSnippet() {
+    return C.TARGETS.map((t, i) =>
+      `lat: ${t.lat.toFixed(6)}, lng: ${t.lng.toFixed(6)}, // ⬅️ CHANGE location ${i + 1}`).join('\n');
+  }
+
+  async function copyConfig() {
+    const text = configSnippet();
+    let copied = false;
+    try { await navigator.clipboard.writeText(text); copied = true; } catch {}
+    const pre = document.createElement('pre'); pre.textContent = text;
+    const wrap = document.createElement('div');
+    const p = document.createElement('p');
+    const unset = C.TARGETS.map((t, i) => (spots[t.id] ? null : i + 1)).filter(Boolean);
+    p.textContent = (copied ? 'Copied. ' : 'Copy these lines. ') +
+      'In config.js, replace each target\'s lat/lng line with the matching line below, then commit and bump CACHE_VERSION in sw.js.' +
+      (unset.length ? ` Location ${unset.join(' & ')} not set on-site yet, so ${unset.length > 1 ? 'those lines are' : 'that line is'} unchanged.` : '');
+    p.style.marginBottom = '10px';
+    wrap.append(p, pre);
+    showModal({ kicker: 'DEV', title: 'Locations for config.js', body: wrap, button: 'DONE' });
+  }
+
+  if (DEV) {
+    $('#dev').hidden = false;
+    const setRow = $('#devSet');
+    const lbl = document.createElement('span'); lbl.textContent = 'Set location:';
+    setRow.append(lbl);
+    C.TARGETS.forEach((t, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.dataset.idx = i; b.textContent = `Set ${i + 1}`;
+      b.addEventListener('click', () => setSpot(i));
+      setRow.append(b);
+    });
+
+    cv.addEventListener('pointerdown', (e) => {
+      if (!S.sim || !S.pos) return;
+      const r = cv.getBoundingClientRect();
+      const dx = e.clientX - r.left - r.width / 2, dy = e.clientY - r.top - r.height / 2;
+      const R = Math.min(r.width, r.height) / 2 - 8;
+      const m = (Math.hypot(dx, dy) / R) * currentRange();
+      const th = (deg(Math.atan2(dx, -dy)) + 360) % 360 + (S.heading || 0);
+      S.pos = { ...offset(S.pos, m, th), acc: 8 };
+      checkArrival();
+    });
+
+    $('#dev').addEventListener('click', (e) => {
+      const a = e.target.dataset.dev; if (!a) return;
+      const t = active()[0];
+      if (a === 'sim') {
+        S.sim = !S.sim;
+        if (S.sim) {
+          const base = S.realPos || C.DEV_START || offset(C.TARGETS[0], 350, 200);
+          S.pos = { lat: base.lat, lng: base.lng, acc: 8 };
+          S.triggers = true;
+        } else {
+          S.pos = S.realPos;
+        }
+        S.inside = {};
+      }
+      if (a === 'triggers') { S.triggers = !S.triggers; S.inside = {}; checkArrival(); }
+      if (a === 'exit') { del(DEV_KEY); location.href = location.pathname; }
+      if (a === 'next' && t && !S.modalOpen) secure(t); // skip ahead: mark current relic found
+      if (a === 'copy') copyConfig();
+      if (a === 'clear') {
+        if (!confirm('Clear the locations set on this device and go back to config.js?')) return;
+        del(SPOTS_KEY); location.reload();
+      }
+      if (a === 'reset') { del(KEY); location.reload(); }
+      if (a === 'step' && t && S.pos) { S.pos = { ...offset(S.pos, dist(S.pos, t) * 0.5, bearing(S.pos, t)), acc: 8 }; checkArrival(); }
+      if (a === 'arrive' && t) { S.pos = { lat: t.lat, lng: t.lng, acc: 8 }; checkArrival(); }
+      if (a === 'left') S.heading = ((S.heading ?? 0) - 15 + 360) % 360;
+      if (a === 'right') S.heading = ((S.heading ?? 0) + 15) % 360;
+    });
+
+    if (Object.keys(spots).length) devMsg(`Using ${Object.keys(spots).length} location(s) set on this device.`, 6000);
+  }
+
+  /* ---------------- main loop ---------------- */
+  function loop(now) {
+    draw(now);
+    updateUI(now);
+    schedulePing(now);
+    requestAnimationFrame(loop);
+  }
+
+  bootScreen();
+  requestAnimationFrame(loop);
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  }
+})();
