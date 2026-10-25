@@ -505,17 +505,17 @@
     const standalone = window.navigator.standalone || matchMedia('(display-mode: standalone)').matches;
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
     const lines = [
-      ['Dragon Ball Radar', ''],
+      ['RELIC FINDER MK-II', ''],
       ['SENSOR ARRAY ......... OK', 'dim'],
       ['PHOSPHOR ............. OK', 'dim'],
-      [`Dragon Balls detected ...... ${TOTAL}`, 'dim'],
+      [`RELICS DETECTED ...... ${TOTAL}`, 'dim'],
     ];
     if (ios && !standalone && !DEV) lines.push(['', ''], ['TIP: SHARE › ADD TO HOME SCREEN', 'dim']);
     if (DEV) lines.push(['', ''], ['DEV MODE', '']);
     const box = $('#bootLines');
     lines.forEach(([txt, cls], i) => {
       const d = document.createElement('div');
-      d.textContent = txt || ' ';
+      d.textContent = txt || ' ';
       if (cls) d.className = cls;
       d.style.animationDelay = `${0.25 + i * 0.28}s`;
       box.append(d);
@@ -690,6 +690,7 @@
       }
       if (a === 'triggers') { S.triggers = !S.triggers; S.inside = {}; checkArrival(); }
       if (a === 'exit') { del(DEV_KEY); location.href = location.pathname; }
+      if (a === 'next' && t && !S.modalOpen) secure(t); // skip ahead: mark current relic found
       if (a === 'copy') copyConfig();
       if (a === 'clear') {
         if (!confirm('Clear the locations set on this device and go back to config.js?')) return;
