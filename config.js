@@ -59,21 +59,21 @@ window.HUNT_CONFIG = {
   TARGETS: [
     {
       name: 'Relic 1',
-      lat: 40.77394, lng: -73.97108, // ⬅️ CHANGE location 1
+      lat: 47.622209, lng: -122.333307, // ⬅️ CHANGE location 1
       image: 'images/db1-relc.png',   // ⬅️ CHANGE picture 1
       hint: 'This is a slower version of instant transmission. ',              // ⬅️ CHANGE hint 1
       clue: 'This is the standard LLD interview question',
     },
     {
       name: 'Relic 2',
-      lat: 40.77566, lng: -73.97186, // ⬅️ CHANGE location 2
+      lat: 447.622209, lng: -122.333307, // ⬅️ CHANGE location 2
       image: 'images/db2-relic.png',   // ⬅️ CHANGE picture 2
       hint: 'Vegeta would never skip a day here. Head to where Saiyans push past their limits and train until they break the 100x gravity.',              // ⬅️ CHANGE hint 2
       clue: '',
     },
     {
       name: 'Relic 3',
-      lat: 40.77938, lng: -73.96913, // ⬅️ CHANGE location 3
+      lat: 47.622209, lng: -122.333307, // ⬅️ CHANGE location 3
       image: 'images/db4-relic.png',   // ⬅️ CHANGE picture 3
       hint: 'You’ve gathered all three Dragon Balls. Now find a place with nothing above you but open sky, and call out Shenron!',              // ⬅️ CHANGE hint 3
       clue: '',
